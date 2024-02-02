@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      # target: development
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/docker-go
+    ports:
+      - 3000:3000
+
+    
+  
