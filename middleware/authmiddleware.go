@@ -32,6 +32,8 @@ func IsAuthenticated(c *fiber.Ctx) error {
 	// Add the UserID to the request context
 	c.Locals("UserID", userID)
 
+	c.Set("Authorization", "Bearer "+cookie)
+
 	return c.Next()
 }
 

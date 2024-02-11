@@ -106,6 +106,7 @@ func main() {
 	app.Post("/playlist", middleware.IsAuthenticated, func(c *fiber.Ctx) error {
 		// Extract the cookie from the request
 		cookie := c.Cookies("jwt")
+		// token := c.Get("Authorization")
 
 		// Create a struct to hold the playlist details
 		var playlistUser models.PlaylistDetails
