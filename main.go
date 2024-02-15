@@ -6,6 +6,7 @@ import (
 	"ge/middleware"
 	"ge/models"
 	"math/rand"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -76,31 +77,86 @@ func main() {
 	})
 
 	//Endpoint to create playlist
+	// app.Post("/playlist", middleware.IsAuthenticated, func(c *fiber.Ctx) error {
+	// 	var playlistUser models.PlaylistDetails
+	// 	if err := c.BodyParser(&playlistUser); err != nil {
+	// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request format"})
+	// 	}
+
+	// 	// Get UserID from the request context
+	// 	userID, ok := c.Locals("UserID").(string)
+	// 	if !ok {
+	// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Unable to retrieve user ID"})
+	// 	}
+
+	// 	// Parse UserID to integer
+	// 	parsedUserID, err := strconv.Atoi(userID)
+	// 	if err != nil {
+	// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
+	// 	}
+
+	// 	playlistUser.UserID = uint(parsedUserID)
+	// 	if err := database.Database.Db.Create(&playlistUser).Error; err != nil {
+	// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error adding playlist"})
+	// 	}
+
+	// 	return c.JSON(fiber.Map{"message": "Playlist created successfully", "playlist": playlistUser})
+	// })
+
 	app.Post("/playlist", middleware.IsAuthenticated, func(c *fiber.Ctx) error {
+		// Extract the cookie from the request
+		cookie := c.Cookies("jwt")
+		// token := c.Get("Authorization")
+
+		// Create a struct to hold the playlist details
 		var playlistUser models.PlaylistDetails
+
+		// Parse the request body into the playlistUser struct
 		if err := c.BodyParser(&playlistUser); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request format"})
 		}
 
-		// Get UserID from the request context
+		// Retrieve the UserID from the request context
 		userID, ok := c.Locals("UserID").(string)
 		if !ok {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Unable to retrieve user ID"})
 		}
 
-		// Parse UserID to integer
+		// Parse the UserID to an integer
 		parsedUserID, err := strconv.Atoi(userID)
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
 		}
 
+		// Assign the UserID to the playlistUser struct
 		playlistUser.UserID = uint(parsedUserID)
-		if err := database.Database.Db.Create(&playlistUser).Error; err != nil {
+
+		// Create a new request to be sent to the database
+		req, err := http.NewRequest("POST", "http://127.0.0.1:3000/playlist", nil)
+		if err != nil {
+			return err
+		}
+
+		// Add the JWT token from the cookie to the request header
+		req.Header.Set("Authorization", "Bearer "+cookie)
+
+		// Send the request to the database server
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+
+		// Check the response status code
+		if resp.StatusCode != http.StatusOK {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error adding playlist"})
 		}
 
+		// Return a success response with the created playlist
 		return c.JSON(fiber.Map{"message": "Playlist created successfully", "playlist": playlistUser})
 	})
+
 	// Endpoint to list all playlists
 	app.Get("/playlists", func(c *fiber.Ctx) error {
 		var playlists []models.Playlist
