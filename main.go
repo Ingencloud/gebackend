@@ -32,7 +32,7 @@ func main() {
 
 	app.Use(cors.New(cors.Config{
 		AllowCredentials: true,
-		AllowOrigins:     "http://localhost:8080/,http://localhost:8080,https://engage.becomingthetackies.site/,https://engage.becomingthetackies.site,https://becomingthetackies.site,",
+		AllowOrigins:     "http://localhost:8080/,http://localhost:8080,https://engage.becomingthetackies.site/,https://engage.becomingthetackies.site,https://becomingthetackies.site,https://becomingthetackies.site",
 		AllowMethods:     "GET,POST,PUT,DELETE",
 	}))
 
